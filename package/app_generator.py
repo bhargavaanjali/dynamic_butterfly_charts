@@ -166,7 +166,7 @@ class AppGenerator:
                 ], style=dict(display='flex')),
             ]),
             html.Div([ 
-                html.Button("Download CSV", id="btn_csv", style={'margin-left': '47vw', 'padding': '15px', 'background-color': '#ed7d31', 'color': 'white', 'border': 'none', 'border-radius': '10px'}),
+                html.Button("Download CSV", id="btn_csv", style={'padding': '20px', 'background-color': '#ed7d31', 'color': 'white', 'border': 'none', 'border-radius': '10px'}),
                 dcc.Download(id="download-dataframe-csv"),  
             ]),
         ])
@@ -191,7 +191,7 @@ class AppGenerator:
             prevent_initial_call=True,
         )
         def func(n_clicks):
-            return dcc.send_data_frame(self.filtered_df.to_csv, "mydf.csv")
+            return dcc.send_data_frame(self.filtered_df.to_csv, "data.csv")
 
         @app.callback(
         [
