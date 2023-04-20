@@ -8,7 +8,7 @@ def find(string: str, substring: str) -> bool:
     return string.find(substring) != -1
 
 def main():
-    filename = 'data/vehdrindcr010623.csv'
+    filename = 'data/vehdrindcr.csv'
 
     df = pd.read_csv(filename, low_memory=False)
     column_names = df.columns.tolist()

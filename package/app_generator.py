@@ -2,6 +2,7 @@
 import pandas as pd
 import dash
 import base64
+import os
 from dash import dcc, html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
@@ -190,8 +191,11 @@ class AppGenerator:
             Input("btn_csv", "n_clicks"),
             prevent_initial_call=True,
         )
-        def func(n_clicks):
-            return dcc.send_data_frame(self.filtered_df.to_csv, "data.csv")
+        def download_df(n_clicks):
+            prefix = 'data'
+            filter_name = self.create_chart_title_from_filters().lower().replace(' ', '_')
+            filename = prefix + ('', '_')[len(filter_name) > 0] + filter_name + '.csv'
+            return dcc.send_data_frame(self.filtered_df.to_csv, filename)
 
         @app.callback(
         [
