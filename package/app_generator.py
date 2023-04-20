@@ -1,6 +1,7 @@
 
 import pandas as pd
 import dash
+import base64
 from dash import dcc, html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
@@ -32,12 +33,13 @@ class AppGenerator:
         df = DataFrameFilterColumnValue.multifilter(self.__dataframe, self.__filtering_parameters)
         # Separate based on gender
         male_gender_id, female_gender_id = 1, 2
-        overspeeding_fatalities_male = DataFrameFilterColumnValue.filter(df, ColumnName.gender, OperationType.EQUAL, male_gender_id)
-        overspeeding_fatalities_female = DataFrameFilterColumnValue.filter(df, ColumnName.gender, OperationType.EQUAL, female_gender_id)
+        multifiltered_male_df = DataFrameFilterColumnValue.filter(df, ColumnName.gender, OperationType.EQUAL, male_gender_id)
+        multifiltered_female_df = DataFrameFilterColumnValue.filter(df, ColumnName.gender, OperationType.EQUAL, female_gender_id)
         input_data_dict = {
-            Gender.MALE: overspeeding_fatalities_male,
-            Gender.FEMALE: overspeeding_fatalities_female
+            Gender.MALE: multifiltered_male_df,
+            Gender.FEMALE: multifiltered_female_df
         }
+        self.filtered_df = df
         # Create histograms based on age on the male and female overspeeders
         teen_df = HistogramFactory.createTeenHistogramCreator().create_dataframe_from_bins(self.bins[Age.TEEN], input_data_dict)
         adult_df = HistogramFactory.createAdultHistogramCreator().create_dataframe_from_bins(self.bins[Age.ADULT], input_data_dict)
@@ -71,14 +73,6 @@ class AppGenerator:
     def create_app(self):
         if not self.__figures:
             self.update_figures()
-        
-        # attribute_names = [
-        #     ColumnName.age,
-        #     ColumnName.gender,
-        #     ColumnName.number_of_fatalities,
-        #     ColumnName.speed,
-        #     ColumnName.vehicle_year,
-        # ]
 
         attribute_names = self.__dataframe.columns.to_list()
 
@@ -170,7 +164,11 @@ class AppGenerator:
                         config=dict(responsive=True)
                     ),
                 ], style=dict(display='flex')),
-            ])
+            ]),
+            html.Div([ 
+                html.Button("Download CSV", id="btn_csv", style={'margin-left': '47vw', 'padding': '15px', 'background-color': '#ed7d31', 'color': 'white', 'border': 'none', 'border-radius': '10px'}),
+                dcc.Download(id="download-dataframe-csv"),  
+            ]),
         ])
 
         @app.callback(
@@ -186,7 +184,15 @@ class AppGenerator:
             if not options:
                 return []
             return [{'label': i, 'value': i} for i in options]
-    
+
+        @app.callback(
+            Output("download-dataframe-csv", "data"),
+            Input("btn_csv", "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def func(n_clicks):
+            return dcc.send_data_frame(self.filtered_df.to_csv, "mydf.csv")
+
         @app.callback(
         [
             Output('chart_primary', 'figure'),
